@@ -44,3 +44,5 @@ Orion.Unequip('ring'); //takes off that Reflex Ring because, well you are wearin
 Orion.Equip('Slot_ATTACK RING') // equips back that Attack Ring you wear like a wedding ring, you have guess right, you got likely also some defense ring too.
 var timer = 197000; // sets the variable for the 'timer' that will run aside since now
 Orion.AddDisplayTimer('*GRR1*', timer , 'LeftTop', 'Line|Bar', '*GRR1*', 0, 235, '0x77B', 0, '0x77B'); // sets the timer to run in a specific part of your screen, the downside is that you might have different minotor and resolutions than me. Which in that case you will edit that number 235 into where it fits the best, either way it will display on top left
+
+<img width="568" height="433" alt="image" src="https://github.com/user-attachments/assets/0ffa0264-65d1-4b55-873a-c522c55d85aa" />
