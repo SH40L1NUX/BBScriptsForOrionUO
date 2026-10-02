@@ -16,7 +16,7 @@ Built for players who want their shards to *work* the way they should — withou
 
 ## Philosophy
 
-> Write less. Do more. Break nothing. Its like strike first, strike hard, no mercy Cobra Kai stuff. ;-D
+> Write less. Do more. Break nothing. Its like strike first, strike hard, no mercy Kobra Kai stuff. ;-D
 
 Orion's JavaScript engine is powerful enough to handle complex automation, but most scripters over-engineer everything. 
 This repo proves that clean, minimal code — when written with understanding — outperforms bloated alternatives every time, although I might not ever care if you got any bandages on you, so that basic check if you got it at all is somehow pointless.
