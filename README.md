@@ -2,6 +2,7 @@
 S1X-Z3R0 JavaScript programming for an extensive functionality within Orion UO.
 
 # Ultima Online — Orion UO JavaScripting
+https://github.com/Hotride/OrionUO
 
 Custom script library for **Orion UO Client** (JavaScript-based). 
 Built for players who want their shards to *work* the way they should — without bloat, without hand-holding, and without scripts that break the moment you bump into a wall.
