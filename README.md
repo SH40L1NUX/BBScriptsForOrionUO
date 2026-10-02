@@ -30,16 +30,17 @@ Orion's JavaScript engine is powerful enough to handle complex automation, but m
 
 ## Requirements
 
-- **Orion UO Client** (latest stable build)
-- JavaScript knowledge (optional — scripts are self-contained)
-
-## Quick Start
-
-1. Clone this repo.
-2. Drop scripts into your Orion `scripts/` directory.
-3. Load and run via Orion's script manager or execute directly in the console.
+- **Orion UO Client** (latest stable build) and an account on Czech UO server www.darkparadise.cz
+- basic JavaScript knowledge (optional — scripts are self-contained)
 
 ```js
 // Example usage
-load('scripts/combat/smartTarget.js');
-smartTarget.execute();
+// Great Reflex Ring 1
+Orion.UseObject('GRR1');
+Orion.Print('[ *GREAT REFLEX RING 1* ]');
+Scripts.Utils.playerPrint('<GRR1>')
+Orion.Wait('300')
+Orion.Unequip('ring');
+Orion.Equip('Slot_ATTACK RING')
+var timer = 197000;
+Orion.AddDisplayTimer('*GRR1*', timer , 'LeftTop', 'Line|Bar', '*GRR1*', 0, 235, '0x77B', 0, '0x77B');
