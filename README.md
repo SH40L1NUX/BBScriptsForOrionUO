@@ -2,9 +2,9 @@
 S1X-Z3R0 JavaScript programming for an extensive functionality within Orion UO.
 
 # Ultima Online — Orion UO JavaScripting
-https://github.com/Hotride/OrionUO
+Download Orion UO here from the Developer's GitHub https://github.com/Hotride/OrionUO
 
-Custom script library for **Orion UO Client** (JavaScript-based). 
+And welcome to my custom Blood Berry script library for **Orion UO Client** (JavaScript-based). 
 
 ## What You'll Find Here
 
