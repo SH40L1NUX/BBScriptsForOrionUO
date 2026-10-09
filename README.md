@@ -37,12 +37,8 @@ While scripts allows to use way more functions including variables and complex l
 ```js
 // Example usage
 
-// Great Reflex Ring 1
-Orion.UseObject('GRR1'); // you will need to define the Great Reflex Ring within Lists/Objects as you will carry more than just one and each has its own timer
-Orion.Print('[ *GREAT REFLEX RING 1* ]'); //tells you what GRR you have just used
-Scripts.Utils.playerPrint('<GRR1>') //prints above you what is the number of GRR you have used in case there is about hundred things going on around you and you need to focus
-Orion.Wait('300') //wait a bit, however you do have already set default wait timer in your Orion, this rather helps when your CPU or RAM gets a bit overloaded. Hard fix.
-Orion.Unequip('ring'); //takes off that Reflex Ring because, well you are wearing an Attack Ring instead and this is the only solution to it
-Orion.Equip('Slot_ATTACK RING') // equips back that Attack Ring you wear like a wedding ring, you have guess right, you got likely also some defense ring too.
-var timer = 197000; // sets the variable for the 'timer' that will run aside since now
-Orion.AddDisplayTimer('*GRR1*', timer , 'LeftTop', 'Line|Bar', '*GRR1*', 0, 235, '0x77B', 0, '0x77B'); // sets the timer to run in a specific part of your screen, the downside is that you might have different minotor and resolutions than me. Which in that case you will edit that number 235 into where it fits the best, either way it will display on top left
+// - Heart Of Dark Forest 
+Orion.UseType('0x136C', '0x0B89'); //Item type and colour of Heart of Dark Forest
+Scripts.Utils.playerPrint('*HODF*' ,'0x044'); // Displays above character that HODF has been used in a specific green colour as colour coding is indeed very important 
+Orion.Print('[ *HODF* ]'); var timer = 135000; // variable of the timer
+Orion.AddDisplayTimer('*HODF*', timer , 'LeftTop', 'Line|Bar', '*HODF*', 0, 160, '0x10B', 0, '0x20B'); // displays the timer of HODF on top left side of the screen for clear visual info
