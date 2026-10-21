@@ -1,6 +1,10 @@
+
 function Pickaxe()
 {
+    // ==================================================
     // CONFIGURATION
+    // ==================================================
+
     var ironIngotsType = '0x1BEF';
     var woodenLogsType = '0x1BDD';
     var pickaxeType = '0x0E85';
@@ -18,28 +22,87 @@ function Pickaxe()
     var ironContainer = '0x401CD5F8';
     var logsContainer = '0x402FE8E0';
 
-    // SELECT PICKAXE DESTINATION AT STARTUP
-    Orion.Print('Target the container for finished pickaxes.');
-    Orion.AddObject('pickaxeDestination');
+    // JOURNAL MESSAGES
+    var fullMessage = 'That container is full';
+    var cannotHoldMessage = 'That container cannot hold more items.';
 
-    if (!Orion.WaitForAddObject('pickaxeDestination', 30000)) {
-        Orion.Print('No destination selected. Stopping.');
+    // ==================================================
+    // PRODUCTION STATISTICS
+    // ==================================================
+
+    var totalAttempts = 0;
+    var successfulAttempts = 0;
+    var failedAttempts = 0;
+    var craftedSinceStart = 0;
+
+    // ==================================================
+    // SELECT INITIAL DESTINATION
+    // ==================================================
+
+    function selectDestination()
+    {
+        Orion.Print('Target a container for finished pickaxes.');
+        Orion.AddObject('pickaxeDestination');
+
+        if (!Orion.WaitForAddObject('pickaxeDestination', 30000)) {
+            Orion.Print('No destination selected. Stopping.');
+            return null;
+        }
+
+        var serial = Orion.GetSerial('pickaxeDestination');
+
+        if (!serial || serial === '0x00000000') {
+            Orion.Print('Invalid destination container. Stopping.');
+            return null;
+        }
+
+        Orion.Print('Pickaxe destination: ' + serial);
+        return serial;
+    }
+
+    var pickaxeDestination = selectDestination();
+
+    if (pickaxeDestination === null) {
         return;
     }
 
-    var pickaxeDestination = Orion.GetSerial('pickaxeDestination');
+    // ==================================================
+    // STATISTICS
+    // ==================================================
 
-    if (!pickaxeDestination || pickaxeDestination === '0x00000000') {
-        Orion.Print('Invalid destination container. Stopping.');
-        return;
+    function getSuccessRate()
+    {
+        if (totalAttempts === 0) {
+            return 0;
+        }
+
+        return (successfulAttempts / totalAttempts) * 100;
     }
 
-    Orion.Print('Pickaxe destination: ' + pickaxeDestination);
+    function printStatistics()
+    {
+        Orion.Print('========== PRODUCTION REPORT ==========');
+        Orion.Print('Crafting attempts: ' + totalAttempts);
+        Orion.Print('Successful attempts: ' + successfulAttempts);
+        Orion.Print('Failed attempts: ' + failedAttempts);
+        Orion.Print('Total pickaxes produced: ' + craftedSinceStart);
+        Orion.Print(
+            'Crafting success rate: ' +
+            getSuccessRate().toFixed(2) + '%'
+        );
+        Orion.Print('=======================================');
+    }
 
-    // COLLECT MATERIALS FROM A CONTAINER
+    // ==================================================
+    // COLLECT MATERIALS
+    // ==================================================
+
     function collectMaterial(graphic, requiredAmount, container)
     {
-        var currentAmount = Orion.Count(graphic, itemColor, 'backpack');
+        var currentAmount = Orion.Count(
+            graphic, itemColor, 'backpack'
+        );
+
         var amountNeeded = requiredAmount - currentAmount;
 
         if (amountNeeded <= 0) {
@@ -74,11 +137,16 @@ function Pickaxe()
             Orion.MoveItem(items[i], moveAmount, 'backpack');
             Orion.Wait(1200);
 
-            currentAmount = Orion.Count(graphic, itemColor, 'backpack');
+            currentAmount = Orion.Count(
+                graphic, itemColor, 'backpack'
+            );
+
             amountNeeded = requiredAmount - currentAmount;
         }
 
-        currentAmount = Orion.Count(graphic, itemColor, 'backpack');
+        currentAmount = Orion.Count(
+            graphic, itemColor, 'backpack'
+        );
 
         if (currentAmount < requiredAmount) {
             Orion.Print(
@@ -93,44 +161,94 @@ function Pickaxe()
         return true;
     }
 
-    // CHECK WHETHER THE DESTINATION CONTAINER IS FULL
+    // ==================================================
+    // DESTINATION CONTAINER HANDLING
+    // ==================================================
+
     function destinationIsFull()
     {
-        return Orion.InJournal('That container is full');
+        return Orion.InJournal(fullMessage) ||
+               Orion.InJournal(cannotHoldMessage);
     }
 
-    // DEPOSIT A BATCH OF PICKAXES
+    function chooseReplacementDestination()
+    {
+        Orion.Print('Destination container cannot accept more items.');
+        Orion.Print('Target a NEW container for finished pickaxes.');
+
+        Orion.RemoveObject('pickaxeDestination');
+        Orion.AddObject('pickaxeDestination');
+
+        if (!Orion.WaitForAddObject('pickaxeDestination', 60000)) {
+            Orion.Print('No replacement selected. Stopping.');
+            return null;
+        }
+
+        var serial = Orion.GetSerial('pickaxeDestination');
+
+        if (!serial || serial === '0x00000000' ||
+            serial === pickaxeDestination) {
+            Orion.Print('Invalid or unchanged destination. Stopping.');
+            return null;
+        }
+
+        Orion.Print('New pickaxe destination: ' + serial);
+        return serial;
+    }
+
+    // ==================================================
+    // DEPOSIT PICKAXES
+    // ==================================================
+
     function depositPickaxes()
     {
         var pickaxes = Orion.FindType(
-            pickaxeType,
-            itemColor,
-            'backpack'
+            pickaxeType, itemColor, 'backpack'
         );
 
         if (pickaxes.length < pickaxesPerBatch) {
-            return false;
+            return true;
         }
 
         Orion.Print('Depositing ' + pickaxesPerBatch + ' pickaxes.');
 
-        for (var i = 0; i < pickaxes.length && i < pickaxesPerBatch; i++) {
-            if (destinationIsFull()) {
-                return false;
-            }
+        for (var i = 0; i < pickaxes.length &&
+                        i < pickaxesPerBatch; i++) {
+
+            Orion.ClearJournal(fullMessage);
+            Orion.ClearJournal(cannotHoldMessage);
 
             Orion.MoveItem(pickaxes[i], 1, pickaxeDestination);
             Orion.Wait(700);
+
+            if (destinationIsFull()) {
+                var replacement = chooseReplacementDestination();
+
+                if (replacement === null) {
+                    return false;
+                }
+
+                pickaxeDestination = replacement;
+
+                // Retry the same pickaxe in the new container.
+                i--;
+                continue;
+            }
         }
 
         Orion.Wait(1000);
-        return !destinationIsFull();
+
+        Orion.Print('Batch deposit operation completed.');
+        return true;
     }
 
+    // ==================================================
     // CRAFT ONE PICKAXE
+    // ==================================================
+
     function craftOnePickaxe()
     {
-        Orion.UseType('0x1BEF');
+        Orion.UseType(ironIngotsType);
 
         if (!Orion.WaitForMenu(3000)) {
             Orion.Print('Crafting menu did not open. Retrying.');
@@ -165,13 +283,14 @@ function Pickaxe()
         return true;
     }
 
+    // ==================================================
     // INITIAL MATERIAL COLLECTION
+    // ==================================================
+
     Orion.Print('Collecting Iron Ingots...');
 
     if (!collectMaterial(
-        ironIngotsType,
-        ironIngotsNeeded,
-        ironContainer
+        ironIngotsType, ironIngotsNeeded, ironContainer
     )) {
         Orion.Print('Stopped: insufficient Iron Ingots.');
         return;
@@ -180,9 +299,7 @@ function Pickaxe()
     Orion.Print('Collecting Wooden Logs...');
 
     if (!collectMaterial(
-        woodenLogsType,
-        woodenLogsNeeded,
-        logsContainer
+        woodenLogsType, woodenLogsNeeded, logsContainer
     )) {
         Orion.Print('Stopped: insufficient Wooden Logs.');
         return;
@@ -191,93 +308,112 @@ function Pickaxe()
     Orion.Print('Materials collected successfully.');
     Orion.Print('Starting pickaxe production.');
 
-    var craftedSinceStart = 0;
+    printStatistics();
 
-    // MAIN CRAFTING LOOP
+    // ==================================================
+    // MAIN PRODUCTION LOOP
+    // ==================================================
+
     while (true) {
+
+        // CHECK DESTINATION STATUS
         if (destinationIsFull()) {
-            Orion.Print('Destination container is full. Stopping.');
-            return;
+            Orion.ClearJournal(fullMessage);
+            Orion.ClearJournal(cannotHoldMessage);
+
+            var replacement = chooseReplacementDestination();
+
+            if (replacement === null) {
+                Orion.Print('Stopped: destination change failed.');
+                printStatistics();
+                return;
+            }
+
+            pickaxeDestination = replacement;
         }
 
-        // REPLENISH IRON BEFORE OPENING THE CRAFTING MENU
+        // REPLENISH IRON
         var currentIron = Orion.Count(
-            ironIngotsType,
-            itemColor,
-            'backpack'
+            ironIngotsType, itemColor, 'backpack'
         );
 
         if (currentIron < ironReplenishThreshold) {
-            Orion.Print('Iron below 10. Replenishing Iron Ingots...');
+            Orion.Print('Iron below threshold. Replenishing...');
 
             if (!collectMaterial(
-                ironIngotsType,
-                ironIngotsNeeded,
-                ironContainer
+                ironIngotsType, ironIngotsNeeded, ironContainer
             )) {
                 Orion.Print('Stopped: unable to replenish Iron Ingots.');
+                printStatistics();
                 return;
             }
         }
 
-        // REPLENISH LOGS BEFORE OPENING THE CRAFTING MENU
+        // REPLENISH LOGS
         var currentLogs = Orion.Count(
-            woodenLogsType,
-            itemColor,
-            'backpack'
+            woodenLogsType, itemColor, 'backpack'
         );
 
         if (currentLogs < logsReplenishThreshold) {
-            Orion.Print('Logs below 5. Replenishing Wooden Logs...');
+            Orion.Print('Logs below threshold. Replenishing...');
 
             if (!collectMaterial(
-                woodenLogsType,
-                woodenLogsNeeded,
-                logsContainer
+                woodenLogsType, woodenLogsNeeded, logsContainer
             )) {
                 Orion.Print('Stopped: unable to replenish Wooden Logs.');
+                printStatistics();
                 return;
             }
         }
 
-        // DEPOSIT EACH COMPLETE BATCH
+        // DEPOSIT COMPLETE BATCHES
         var currentPickaxes = Orion.Count(
-            pickaxeType,
-            itemColor,
-            'backpack'
+            pickaxeType, itemColor, 'backpack'
         );
 
         if (currentPickaxes >= pickaxesPerBatch) {
             if (!depositPickaxes()) {
-                Orion.Print('Deposit failed or destination is full.');
+                Orion.Print('Deposit failed. Stopping.');
+                printStatistics();
                 return;
             }
 
             continue;
         }
 
-        // CRAFT THE NEXT PICKAXE
+        // RECORD CURRENT PICKAXE COUNT
         var previousCount = currentPickaxes;
 
+        // OPEN MENU AND SELECT PICKAXE RECIPE
         if (!craftOnePickaxe()) {
             Orion.Wait(1000);
             continue;
         }
 
+        // WAIT FOR THE CRAFTING RESULT
         Orion.Wait(1000);
 
-        currentPickaxes = Orion.Count(
-            pickaxeType,
-            itemColor,
-            'backpack'
+        var newCount = Orion.Count(
+            pickaxeType, itemColor, 'backpack'
         );
 
-        if (currentPickaxes > previousCount) {
-            craftedSinceStart += currentPickaxes - previousCount;
+        // COUNT THE CRAFTING ATTEMPT
+        totalAttempts++;
 
-            Orion.Print(
-                'Pickaxes crafted this run: ' + craftedSinceStart
-            );
+        if (newCount > previousCount) {
+            successfulAttempts++;
+            craftedSinceStart += newCount - previousCount;
+
+            Orion.Print('Pickaxe crafted successfully.');
+        } else {
+            failedAttempts++;
+
+            Orion.Print('Pickaxe crafting failed.');
+        }
+
+        // FULL REPORT EVERY 10 ATTEMPTS
+        if (totalAttempts % 10 === 0) {
+            printStatistics();
         }
     }
 }
